@@ -9,7 +9,8 @@ import plotly.graph_objects as go
 import copy
 
 if __name__ == "__main__":
-    import os 
+    import os
+
     script_dir = os.path.realpath(os.path.dirname(__file__))
     input_code_name = os.path.join(script_dir, "vehicle_controller.py")
     vehicle = VehicleAgent('car', file_name=input_code_name)
@@ -17,14 +18,14 @@ if __name__ == "__main__":
 
     scenario = Scenario(ScenarioConfig(init_seg_length=1, parallel=False))
 
-    scenario.add_agent(vehicle) 
+    scenario.add_agent(vehicle)
     scenario.add_agent(pedestrian)
     scenario.set_sensor(VehiclePedestrianSensor())
 
     # # ----------- Different initial ranges -------------
     # # Uncomment this block to use R1
-    init_car = [[-5,-5,0,8],[5,5,0,8]]
-    init_pedestrian = [[175,-55,0,3],[175,-55,0,3]]
+    init_car = [[-5, -5, 0, 8], [5, 5, 0, 8]]
+    init_pedestrian = [[175, -55, 0, 3], [175, -55, 0, 3]]
     # # -----------------------------------------
 
     # # Uncomment this block to use R2
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     # # -----------------------------------------
 
     scenario.set_init_single(
-        'car', init_car,(VehicleMode.Normal,)
+        'car', init_car, (VehicleMode.Normal,)
     )
     scenario.set_init_single(
         'pedestrian', init_pedestrian, (PedestrianMode.Normal,)
@@ -60,16 +61,16 @@ if __name__ == "__main__":
     # ----------- verify no refine: Uncomment this block to perform verification without refinement ----------
     traces = scenario.verify(50, 0.1)
     fig = go.Figure()
-    fig = reachtube_tree_3d(traces, fig,\
-                             0,'time', 1,'x',2,'y')
+    fig = reachtube_tree_3d(traces, fig, \
+                            0, 'time', 1, 'x', 2, 'y')
     fig.show()
     # -----------------------------------------
 
-    #-------(optional) Dump traces to json file
+    # -------(optional) Dump traces to json file
     # traces.dump('path')
-    #------- (optional) Save figure to HTML
+    # ------- (optional) Save figure to HTML
     # fig.write_html("path/to/file.html")
-    
+
     # # ------------- Verify refine: Uncomment this block to perform verification with refinement -------------
     # traces = verify_refine(scenario, 50, 0.1)
     # fig = go.Figure()
