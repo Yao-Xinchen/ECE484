@@ -64,7 +64,7 @@ class BaseAgent:
     def dynamic(t, state, u):
         raise NotImplementedError()
 
-    def TC_simulate(self, mode, initialSet, time_horizon, time_step, map=None):
+    def TC_simulate(self, mode, init, time_bound, time_step, lane_map=None):
         # TODO: P1. Should TC_simulate really be part of the agent definition or
         # should it be something more generic?
         # TODO: P2. Looks like this should be a global parameter;
@@ -76,18 +76,18 @@ class BaseAgent:
         ----------
             mode: str
                 The current mode to simulate
-            initialSet: List[float]
+            init: List[float]
                 The initial condition to perform the simulation
-            time_horizon: float
+            time_bound: float
                 The time horizon for simulation
             time_step: float
                 time_step for performing simulation
-            map: LaneMap, optional
+            lane_map: LaneMap, optional
                 Provided if the map is used
         """
-        y0 = initialSet 
-        t = np.round(np.arange(0.0, time_horizon+time_step/2, time_step), 8)
-        trace = odeint(func = self.dynamics, y0 = y0, t = t, tfirst=True)
+        y0 = init 
+        t = np.round(np.arange(0.0, time_bound+time_step/2, time_step), 8)
+        trace = odeint(func = self.dynamic, y0 = y0, t = t, tfirst=True)
         t = t.reshape((-1,1))
         trace = np.hstack((t, trace))
         return trace

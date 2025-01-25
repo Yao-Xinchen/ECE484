@@ -19,6 +19,7 @@ class State:
     theta: float 
     v: float 
     agent_mode: VehicleMode 
+    signal_mode: TLMode
 
     def __init__(self, x, y, theta, v, agent_mode: VehicleMode):
         pass 
