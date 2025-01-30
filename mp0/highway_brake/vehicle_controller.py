@@ -30,10 +30,8 @@ def decisionLogic(ego: State, other: State):
 
     # TODO: Edit this part of decision logic
 
-    if ego.agent_mode == VehicleMode.Normal and other.dist < 16:
-        output.agent_mode = VehicleMode.Brake
-
-        ###########################################
+    if ego.agent_mode == VehicleMode.Normal and other.dist < 5:
+        output.agent_mode = VehicleMode.HardBrake
 
     # DO NOT CHANGE THIS
     assert other.dist > 2.0, "Too Close"
