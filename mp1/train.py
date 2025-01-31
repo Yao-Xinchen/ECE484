@@ -6,7 +6,7 @@ import wandb
 from torch.utils.data import DataLoader
 from datasets.lane_dataset import LaneDataset
 from models.enet import ENet
-from models.losses import compu`te_loss
+from models.losses import compute_loss
 from utils.visualization import visualize_first_prediction
 from torch.optim import Adam
 
