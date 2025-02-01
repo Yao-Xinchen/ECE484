@@ -46,16 +46,16 @@ if __name__ == "__main__":
     )
 
     # ------ Simulate: Uncomment this block to perform single simulation n times -------
-    traces = []
-    fig = go.Figure()
-    n = 3
-    for i in range(n):
-        trace = scenario.simulate(50, 0.1)
-        traces.append(trace)
-        fig = simulation_tree_3d(trace, fig, \
-                                 0, 'time', 1, 'x', 2, 'y')
-    avg_vel, unsafe_frac, unsafe_init = eval_velocity(traces)
-    fig.show()
+    # traces = []
+    # fig = go.Figure()
+    # n = 100
+    # for i in range(n):
+    #     trace = scenario.simulate(50, 0.1)
+    #     traces.append(trace)
+    #     fig = simulation_tree_3d(trace, fig, \
+    #                              0, 'time', 1, 'x', 2, 'y')
+    # avg_vel, unsafe_frac, unsafe_init = eval_velocity(traces)
+    # fig.show()
     # -----------------------------------------
 
     # ----------- verify no refine: Uncomment this block to perform verification without refinement ----------
@@ -72,10 +72,10 @@ if __name__ == "__main__":
     # fig.write_html("path/to/file.html")
 
     # # ------------- Verify refine: Uncomment this block to perform verification with refinement -------------
-    # traces = verify_refine(scenario, 50, 0.1)
-    # fig = go.Figure()
-    # for trace in traces:
-    #     fig = reachtube_tree_3d(trace, fig, \
-    #                             0, 'time', 1, 'x', 2, 'y')
-    # fig.show()
+    traces = verify_refine(scenario, 50, 0.1)
+    fig = go.Figure()
+    for trace in traces:
+        fig = reachtube_tree_3d(trace, fig, \
+                                0, 'time', 1, 'x', 2, 'y')
+    fig.show()
     # # -----------------------------------------

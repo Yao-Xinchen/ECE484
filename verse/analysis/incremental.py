@@ -24,7 +24,7 @@ class CachedTransition:
 
 @dataclass
 class CachedSegment:
-    trace: nptyp.NDArray[np.float_]
+    trace: nptyp.NDArray[np.float64]
     asserts: List[str]
     transitions: List[CachedTransition]
     node_ids: Set[Tuple[int, int]]
@@ -167,7 +167,7 @@ class SimTraceCache:
         agent_id: str,
         node: AnalysisTreeNode,
         transit_agents: List[str],
-        trace: nptyp.NDArray[np.float_],
+        trace: nptyp.NDArray[np.float64],
         transition,
         trans_ind: int,
         run_num: int,
