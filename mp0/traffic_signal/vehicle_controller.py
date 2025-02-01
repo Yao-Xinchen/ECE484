@@ -35,7 +35,7 @@ def decisionLogic(ego: State, other: State):
     d_in = 20
     d_out = 15
 
-    brake_dist = 18.25  # distance needed to brake
+    brake_dist = 18.5  # distance needed to brake
 
     if ego.agent_mode == VehicleMode.Normal:
         if other.signal_mode == TLMode.RED:

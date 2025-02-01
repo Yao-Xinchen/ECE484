@@ -47,7 +47,7 @@ if __name__ == "__main__":
 
     traces = []
     fig = go.Figure()
-    n = 3
+    n = 100
     for i in range(n):
         trace = scenario.simulate(80, 0.1)
         traces.append(trace)
