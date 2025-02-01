@@ -4,7 +4,7 @@
 
 ### A
 
-The highest $$R_i$$ I reach is $$R_3$$.
+The highest $R_i$ I reach is $R_3$.
 
 Here is the reachability plot from `verify_refine()`:
 
@@ -12,7 +12,7 @@ Here is the reachability plot from `verify_refine()`:
 
 ### B
 
-The average speed I achieve is $$7.985$$.
+The average speed I achieve is $7.985$.
 
 The output of simulation is:
 
@@ -32,7 +32,7 @@ To reach higher average speed, my DL use the lowest distance threshold to start 
 
 ### A
 
-The highest $$R_i$$ I reach is $$R_3$$.
+The highest $R_i$ I reach is $R_3$.
 
 Here is the simulation plot:
 
@@ -40,7 +40,7 @@ Here is the simulation plot:
 
 ### B
 
-The average speed I achieve is $$7.985$$.
+The average speed I achieve is $7.985$.
 
 The output of simulation is:
 
@@ -56,3 +56,7 @@ when the car is going to enter the Entrance region and the TL is red.
 
 It uses `Accel` to gain a high speed,
 which prevents the car to be slow at the Exit region.
+
+## Code
+
+My code is uploaded to https://github.com/Yao-Xinchen/ECE484.
