@@ -11,13 +11,14 @@ from utils.visualization import visualize_first_prediction
 from torch.optim import Adam
 
 # Configurations
-BATCH_SIZE = 1
-LR = 1
+BATCH_SIZE = 16
+LR = 1E-3
 EPOCHS = 1
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-DATASET_PATH =  "/opt/data/TUSimple"
+DATASET_PATH = "/opt/data/TUSimple"
 CHECKPOINT_DIR = "checkpoints"
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+
 
 def validate(model, val_loader):
     """
@@ -54,6 +55,7 @@ def validate(model, val_loader):
 
     return mean_binary_loss, mean_instance_loss, total_loss
 
+
 def train():
     """
     Train the ENet model on the training dataset and log results to Weights & Biases.
@@ -75,21 +77,24 @@ def train():
     ################################################################################
     # train_dataset = ...
     # train_loader = DataLoader(...)
+    train_dataset = LaneDataset(dataset_path=DATASET_PATH, mode="train")
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     # val_dataset = ...
     # val_loader = DataLoader(...)
+    val_dataset = LaneDataset(dataset_path=DATASET_PATH, mode="val")
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
     ################################################################################
 
     # Model and optimizer initialization
     enet_model = ENet(binary_seg=2, embedding_dim=4).to(DEVICE)
-    
-    
+
     # TODO: Initialize the Adam optimizer with appropriate learning rate and weight decay.
     ################################################################################
     # optimizer = ...
-    
-    ################################################################################
+    optimizer = Adam(enet_model.parameters(), lr=LR)
 
+    ################################################################################
 
     def save_checkpoint(model, optimizer, epoch, checkpoint_dir):
         """
@@ -111,8 +116,9 @@ def train():
         binary_losses = []
         instance_losses = []
 
-        for batch_idx, (images, binary_labels, instance_labels) in enumerate(tqdm.tqdm(train_loader, desc=f"Epoch {epoch}/{EPOCHS}")):
-            
+        for batch_idx, (images, binary_labels, instance_labels) in enumerate(
+                tqdm.tqdm(train_loader, desc=f"Epoch {epoch}/{EPOCHS}")):
+
             # TODO: Complete the training step for a single batch.
             ################################################################################
             # Hint:
@@ -122,13 +128,32 @@ def train():
             # 4. Sum the losses (`loss = binary_loss + instance_loss`) for backpropagation.
             # 5. Zero out the optimizer gradients, backpropagate the loss, and take an optimizer step.
 
+            # move to device
+            images = images.to(DEVICE)
+            binary_labels = binary_labels.to(DEVICE)
+            instance_labels = instance_labels.to(DEVICE)
 
+            # forward pass
+            binary_logits, instance_embeddings = enet_model(images)
 
+            # compute loss
+            binary_loss, instance_loss = compute_loss(
+                binary_output=binary_logits,
+                instance_output=instance_embeddings,
+                binary_label=binary_labels,
+                instance_label=instance_labels,
+            )
 
+            # sum the losses
+            loss = binary_loss + instance_loss
+
+            # backpropagation
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
             ################################################################################
-            
-            
+
             # Log visualizations for the first batch of the epoch
             if batch_idx == 0:
                 combined_row = visualize_first_prediction(
@@ -162,7 +187,10 @@ def train():
         # Hint:
         # Call the `validate` function, passing the model and validation data loader.
         ################################################################################
+
         # val_binary_loss, val_instance_loss, val_total_loss = ...
+        val_binary_loss, val_instance_loss, val_total_loss = validate(enet_model, val_loader)
+
         ################################################################################
         print(f"Validation Results - Epoch {epoch}: "
               f"Binary Loss = {val_binary_loss:.4f}, "
@@ -178,6 +206,7 @@ def train():
         save_checkpoint(enet_model, optimizer, epoch, CHECKPOINT_DIR)
 
     wandb.finish()
+
 
 if __name__ == '__main__':
     train()
