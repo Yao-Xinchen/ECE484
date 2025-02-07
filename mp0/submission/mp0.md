@@ -18,7 +18,8 @@ The output of simulation is:
 
 ```text
 No Unsafety detected!🥰
-Overall average velocity over 100 safe executions is 7.985213144490009. This is above the threshold of 7!😋
+Overall average velocity over 100 safe executions is 7.985213144490009.
+This is above the threshold of 7!😋
 ```
 
 ### C
@@ -46,7 +47,8 @@ The output of simulation is:
 
 ```text
 No Unsafety detected!🥰
-Overall average velocity over 50 safe executions is 6.566738024693409. This is above the threshold of 6.5!😋
+Overall average velocity over 50 safe executions is 6.566738024693409.
+This is above the threshold of 6.5!😋
 ```
 
 ### C
