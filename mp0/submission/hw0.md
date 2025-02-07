@@ -16,6 +16,8 @@ $Q_0 \subseteq Q$ and $Post(Q) \subseteq Q$ are true, so $Q$ is an inductive inv
 
 For $I$ to be an inductive invariant of $A$, $Q_0 \subseteq I$ and $Post(I) \subseteq I$ must be true.
 
+To help prove safety, $I$ should not intersect with the unsafe set $U$.
+
 ## Problem 1
 
 Yes, $0 \leq v_1(t) \leq v_0$ is an invariant of $A$.

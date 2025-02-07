@@ -59,4 +59,4 @@ which prevents the car to be slow at the Exit region.
 
 ## Code
 
-My code is uploaded to https://github.com/Yao-Xinchen/ECE484.
+My code has been uploaded to https://github.com/Yao-Xinchen/ECE484.
