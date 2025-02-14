@@ -147,6 +147,10 @@ def train():
             # sum the losses
             loss = binary_loss + instance_loss
 
+            epoch_loss += loss.item()
+            binary_losses.append(binary_loss.item())
+            instance_losses.append(instance_loss.item())
+
             # backpropagation
             optimizer.zero_grad()
             loss.backward()
