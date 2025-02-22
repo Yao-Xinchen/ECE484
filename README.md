@@ -10,3 +10,6 @@ https://gitlab.engr.illinois.edu/GolfCar/verse_mp
 
 `./mp0` is from `mp0b-fa24` in
 https://gitlab.engr.illinois.edu/GolfCar/mp0b-fa24
+
+`./mp1` is from `mp-release-sp25` in
+https://gitlab.engr.illinois.edu/GolfCar/mp-release-sp25
