@@ -8,7 +8,7 @@ import os
 
 # Define dataset and checkpoint paths
 DATASET_PATH = "/opt/data/TUSimple/test_set"
-CHECKPOINT_PATH = "checkpoints/enet_checkpoint_epoch_best.pth"  # Path to the trained model checkpoint
+CHECKPOINT_PATH = "checkpoints/best32.pth"  # Path to the trained model checkpoint
 
 
 # Function to load the ENet model
@@ -43,7 +43,7 @@ def perspective_transform(image):
     halfwidth = width // 2
     # Calculate intersection parameters
     # Area is a trapezoid defined by clip_top and clip_bottom, with side diagonals converging at the horizon
-    # 
+    #
     # --------------------+----------------- y = horizon
     #                   /  x = halfwidth
     # -----------------*-------------------- y = clip_top
@@ -81,6 +81,23 @@ def perspective_transform(image):
     return transformed_image
 
 
+def create_colored_mask(instances_map):
+    H, W = instances_map.shape
+    colored_mask = np.zeros((H, W, 3), dtype=np.uint8)
+
+    color_table = {
+        1: (255, 0, 0),
+        2: (0, 255, 0),
+        3: (0, 0, 255),
+        4: (255, 255, 255),
+
+    }
+    for id_val, color in color_table.items():
+        colored_mask[instances_map == id_val] = color
+
+    return colored_mask
+
+
 # Function to visualize lane predictions for multiple images in a single row
 def visualize_lanes_row(images, instances_maps, alpha=0.7):
     """
@@ -92,7 +109,7 @@ def visualize_lanes_row(images, instances_maps, alpha=0.7):
     """
 
     num_images = len(images)
-    fig, axes = plt.subplots(1, num_images, figsize=(15, 5))
+    fig, axes = plt.subplots(2, num_images, figsize=(15, 5))
 
     ####################### TODO: Your code starts Here #######################
 
@@ -103,27 +120,22 @@ def visualize_lanes_row(images, instances_maps, alpha=0.7):
         # Resize image to 512 x 256
         image = cv2.resize(image, (512, 256))
         instances_map = cv2.resize(instances_map, (512, 256))
+        t_instances_map = create_colored_mask(instances_map)
+        overlay_orig = cv2.addWeighted(image, alpha, t_instances_map, 1 - alpha, 0)
+        axes[0, i].imshow(overlay_orig)
+        axes[0, i].axis("off")
+        axes[0, i].set_title(f"Image {i + 1}")
 
         # Apply perspective transform to the original image and its instance map
         transformed_image = perspective_transform(image)
         transformed_instances_map = perspective_transform(instances_map)
-        print(transformed_instances_map)
-        # print(f"Image shape: {transformed_instances_map.shape}")
-        transformed_instances_map = np.stack([transformed_instances_map,
-                                              np.zeros_like(transformed_instances_map),
-                                              np.zeros_like(transformed_instances_map)],
-                                             axis=-1)
-        # transformed_instances_map = np.pad(transformed_instances_map, 2, mode='empty', axis=2)
-        # transformed_instances_map = transformed_instances_map.astype(np.uint8)
-        normalized_instance_map = cv2.normalize(transformed_instances_map, None, 0, 255, cv2.NORM_MINMAX)
-        transformed_instances_map = normalized_instance_map.astype(np.uint8)
-
+        transformed_instances_map = create_colored_mask(transformed_instances_map)
         overlay = cv2.addWeighted(transformed_image, alpha, transformed_instances_map, 1 - alpha, 0)
 
         # Plot the overlay
-        axes[i].imshow(overlay)
-        axes[i].axis("off")
-        axes[i].set_title(f"Image {i + 1}")
+        axes[1, i].imshow(overlay)
+        axes[1, i].axis("off")
+        axes[1, i].set_title(f"Image {i + 1}")
 
     ####################### TODO: Your code ends Here #######################
 
