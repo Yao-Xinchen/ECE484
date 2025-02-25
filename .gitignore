@@ -5,3 +5,6 @@ checkpoints/
 */.DS_Store
 */build/
 */devel/
+*/.vscode/
+*/.catkin_workspace
+*/*@
