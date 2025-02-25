@@ -8,3 +8,4 @@ checkpoints/
 */.vscode/
 */.catkin_workspace
 */*@
+mp2/src/CMakeLists.txt

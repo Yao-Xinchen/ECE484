@@ -37,10 +37,14 @@ class vehicleController():
     # Tasks 1: Read the documentation https://docs.ros.org/en/fuerte/api/gazebo/html/msg/ModelState.html
     #       and extract yaw, velocity, vehicle_position_x, vehicle_position_y
     # Hint: you may use the the helper function(quaternion_to_euler()) we provide to convert from quaternion to euler
-    def extract_vehicle_info(self, currentPose):
+    def extract_vehicle_info(self, currentPose: ModelState):
 
         ####################### TODO: Your TASK 1 code starts Here #######################
-        pos_x, pos_y, vel, yaw = 0, 0, 0, 0
+
+        pos_x = currentPose.pose.position.x
+        pos_y = currentPose.pose.position.y
+        vel = currentPose.twist.linear.x
+        yaw = quaternion_to_euler(currentPose.pose.orientation)[2]
 
         ####################### TODO: Your Task 1 code ends Here #######################
 
@@ -53,8 +57,23 @@ class vehicleController():
         ####################### TODO: Your TASK 2 code starts Here #######################
         target_velocity = 10
 
+        straight_vel = 12
+        turn_vel = 8
+
+        turn_dist = 5
+
+        waypoint_x = future_unreached_waypoints[0][0]
+        waypoint_y = future_unreached_waypoints[0][1]
+
+        distance_to_waypoint = math.sqrt((waypoint_x - curr_x)**2 + (waypoint_y - curr_y)**2)
+
+        if distance_to_waypoint > turn_dist:
+            target_velocity = straight_vel
+        else:
+            target_velocity = turn_vel
 
         ####################### TODO: Your TASK 2 code ends Here #######################
+
         return target_velocity
 
 
@@ -64,7 +83,17 @@ class vehicleController():
         ####################### TODO: Your TASK 3 code starts Here #######################
         target_steering = 0
 
-        ####################### TODO: Your TASK 3 code starts Here #######################
+        # lookahead distance `ld`
+        ld = ((target_point[0] - curr_x)**2 + (target_point[1] - curr_y)**2)**0.5
+
+        # angle between
+        alpha = math.atan2(target_point[1] - curr_y, target_point[0] - curr_x) - curr_yaw
+
+        # steering angle
+        target_steering = math.atan2(2 * self.L * math.sin(alpha), ld)
+
+        ####################### TODO: Your TASK 3 code ends Here #######################
+
         return target_steering
 
 
