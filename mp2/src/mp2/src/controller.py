@@ -44,7 +44,12 @@ class vehicleController():
         pos_x = currentPose.pose.position.x
         pos_y = currentPose.pose.position.y
         vel = currentPose.twist.linear.x
-        yaw = quaternion_to_euler(currentPose.pose.orientation)[2]
+        yaw = quaternion_to_euler(
+            currentPose.pose.orientation.x,
+            currentPose.pose.orientation.y,
+            currentPose.pose.orientation.z,
+            currentPose.pose.orientation.w
+        )[2]
 
         ####################### TODO: Your Task 1 code ends Here #######################
 
