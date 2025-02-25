@@ -2,3 +2,6 @@ __pycache__/
 .idea/
 wandb/
 checkpoints/
+*/.DS_Store
+*/build/
+*/devel/
