@@ -11,11 +11,11 @@ from utils.visualization import visualize_first_prediction
 from torch.optim import Adam
 
 # Configurations
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 LR = 1E-3
 EPOCHS = 1
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-DATASET_PATH = "/opt/data/TUSimple"
+DATASET_PATH = "/media/xinchen/Local Disk/Shared/tusimple/TUSimple"
 CHECKPOINT_DIR = "checkpoints"
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
