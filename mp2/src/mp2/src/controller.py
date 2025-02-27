@@ -10,6 +10,7 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 class vehicleController():
 
     def __init__(self):
@@ -18,10 +19,10 @@ class vehicleController():
         self.prev_vel = 0
         self.L = 1.75  # Wheelbase, can be get from gem_control.py
         self.log_acceleration = True
-        self.accelerations =[]
+        self.accelerations = []
         self.times = []
-        self.xs =[]
-        self.ys =[]
+        self.xs = []
+        self.ys = []
         self.time = 0
 
     def getModelState(self):
@@ -181,11 +182,10 @@ class vehicleController():
         plt.xlabel('Time (s)')
         plt.ylabel('Acceleration (m/s^2)')
         plt.title('Acceleration Profile')
-        x_init,y_init = self.xs[0], self.ys[0]
+        x_init, y_init = self.xs[0], self.ys[0]
         plt.figure()
-        plt.plot(self.xs, self.ys,'-o',color='blue',label='Vehicle Trajectory')
-        plt.scatter(x_init,y_init,color='red',marker='s',s=100,label='Start Point')
-        plt.scatter(self.xs,self.ys,color='green',marker='s',s=100,label='End Point')
+        plt.plot(self.xs, self.ys, '-o', color='blue', label='Vehicle Trajectory')
+        plt.scatter(x_init, y_init, color='red', marker='s', s=100, label='Start Point')
         plt.title('Vehicle Trajectory around the track')
         plt.xlabel('X Position (m)')
         plt.ylabel('Y Position (m)')
