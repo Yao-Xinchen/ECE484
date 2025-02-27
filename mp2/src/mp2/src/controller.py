@@ -7,7 +7,8 @@ from std_msgs.msg import Float32MultiArray
 import math
 from util import euler_to_quaternion, quaternion_to_euler
 import time
-
+import matplotlib.pyplot as plt
+import numpy as np
 
 class vehicleController():
 
@@ -16,7 +17,10 @@ class vehicleController():
         self.controlPub = rospy.Publisher("/ackermann_cmd", AckermannDrive, queue_size=1)
         self.prev_vel = 0
         self.L = 1.75  # Wheelbase, can be get from gem_control.py
-        self.log_acceleration = False
+        self.log_acceleration = True
+        self.accelerations =[]
+        self.times = []
+        self.time = 0
 
     def getModelState(self):
         # Get the current state of the vehicle
@@ -151,6 +155,9 @@ class vehicleController():
         # Acceleration Profile
         if self.log_acceleration:
             acceleration = (curr_vel - self.prev_vel) * 100  # Since we are running in 100Hz
+            self.accelerations.append(acceleration)
+            self.time += 0.01
+            self.times.append(self.time)
 
         target_velocity = self.longititudal_controller(curr_x, curr_y, curr_vel, curr_yaw, future_unreached_waypoints)
         target_steering = self.pure_pursuit_lateral_controller(curr_x, curr_y, curr_yaw, target_point,
@@ -163,6 +170,13 @@ class vehicleController():
 
         # Publish the computed control input to vehicle model
         self.controlPub.publish(newAckermannCmd)
+
+    def plot_acceleration(self):
+        plt.plot(self.times, self.accelerations)
+        plt.xlabel('Time (s)')
+        plt.ylabel('Acceleration (m/s^2)')
+        plt.title('Acceleration Profile')
+        plt.show()
 
     def stop(self):
         newAckermannCmd = AckermannDrive()

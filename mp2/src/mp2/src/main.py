@@ -67,6 +67,8 @@ def run_model():
 
         controller.execute(currState, [target_x, target_y], pos_list[pos_idx:])
 
+    controller.plot_acceleration()
+
 if __name__ == "__main__":
     try:
         status, num_waypoints, time_taken = run_model()
