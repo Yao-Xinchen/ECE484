@@ -6,8 +6,6 @@ import numpy as np
 from std_msgs.msg import Float32MultiArray
 import math
 
-from sympy.printing.pretty.pretty_symbology import line_width
-
 from util import euler_to_quaternion, quaternion_to_euler
 import time
 import matplotlib.pyplot as plt
@@ -189,12 +187,12 @@ class vehicleController():
         plt.figure()
 
         # path
-        plt.plot(self.xs, self.ys, '-o', color='blue', label='Vehicle Trajectory',linewidth=0.5)
+        plt.plot(self.xs, self.ys, '-', color='blue', label='Vehicle Trajectory')
         # waypoints
         point_list = np.array(waypoint_list.WayPoints().getWayPoints())
         plt.scatter(point_list[:, 0], point_list[:, 1], color='green', marker='o', s=50, label='Waypoints')
         # start point
-        plt.scatter(x_init, y_init, color='red', marker='s', s=100, label='Start Point')
+        plt.scatter(x_init, y_init, color='red', marker='s', s=50, label='Start Point')
         plt.title('Vehicle Trajectory around the track')
         plt.xlabel('X Position (m)')
         plt.ylabel('Y Position (m)')
