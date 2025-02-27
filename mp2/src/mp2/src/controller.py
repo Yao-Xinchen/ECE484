@@ -5,6 +5,9 @@ from ackermann_msgs.msg import AckermannDrive
 import numpy as np
 from std_msgs.msg import Float32MultiArray
 import math
+
+from sympy.printing.pretty.pretty_symbology import line_width
+
 from util import euler_to_quaternion, quaternion_to_euler
 import time
 import matplotlib.pyplot as plt
@@ -186,7 +189,7 @@ class vehicleController():
         plt.figure()
 
         # path
-        plt.plot(self.xs, self.ys, '-o', color='blue', label='Vehicle Trajectory')
+        plt.plot(self.xs, self.ys, '-o', color='blue', label='Vehicle Trajectory',linewidth=0.5)
         # waypoints
         point_list = np.array(waypoint_list.WayPoints().getWayPoints())
         plt.scatter(point_list[:, 0], point_list[:, 1], color='green', marker='o', s=50, label='Waypoints')
