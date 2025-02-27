@@ -9,6 +9,7 @@ from util import euler_to_quaternion, quaternion_to_euler
 import time
 import matplotlib.pyplot as plt
 import numpy as np
+import waypoint_list
 
 
 class vehicleController():
@@ -176,13 +177,20 @@ class vehicleController():
         self.controlPub.publish(newAckermannCmd)
 
     def plot_all(self):
+        # acceleration
         plt.plot(self.times, self.accelerations)
         plt.xlabel('Time (s)')
         plt.ylabel('Acceleration (m/s^2)')
         plt.title('Acceleration Profile')
         x_init, y_init = self.xs[0], self.ys[0]
         plt.figure()
+
+        # path
         plt.plot(self.xs, self.ys, '-o', color='blue', label='Vehicle Trajectory')
+        # waypoints
+        point_list = np.array(waypoint_list.WayPoints().getWayPoints())
+        plt.scatter(point_list[:, 0], point_list[:, 1], color='green', marker='o', s=50, label='Waypoints')
+        # start point
         plt.scatter(x_init, y_init, color='red', marker='s', s=100, label='Start Point')
         plt.title('Vehicle Trajectory around the track')
         plt.xlabel('X Position (m)')
