@@ -86,9 +86,7 @@ class vehicleController():
             diff = diff + 2 * math.pi
         diff = np.abs(diff)
 
-        if (diff > 0.25):
-            target_velocity = 5
-        elif (diff > 0.15):
+        if (diff > 0.15):
             target_velocity = 14
         elif (diff > 0.1):
             target_velocity = 15
