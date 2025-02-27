@@ -20,6 +20,8 @@ class vehicleController():
         self.log_acceleration = True
         self.accelerations =[]
         self.times = []
+        self.xs =[]
+        self.ys =[]
         self.time = 0
 
     def getModelState(self):
@@ -46,7 +48,9 @@ class vehicleController():
         ####################### TODO: Your TASK 1 code starts Here #######################
 
         pos_x = currentPose.pose.position.x
+        self.xs.append(pos_x)
         pos_y = currentPose.pose.position.y
+        self.ys.append(pos_y)
         vel = (currentPose.twist.linear.x ** 2 + currentPose.twist.linear.y ** 2) ** 0.5
         yaw = quaternion_to_euler(
             currentPose.pose.orientation.x,
@@ -94,7 +98,7 @@ class vehicleController():
         else:
             target_velocity = 20
 
-        print(target_velocity, '\t', curr_vel)
+        # print(target_velocity, '\t', curr_vel)
 
         ####################### TODO: Your TASK 2 code ends Here #######################
 
@@ -155,6 +159,7 @@ class vehicleController():
         # Acceleration Profile
         if self.log_acceleration:
             acceleration = (curr_vel - self.prev_vel) * 100  # Since we are running in 100Hz
+            self.prev_vel = curr_vel
             self.accelerations.append(acceleration)
             self.time += 0.01
             self.times.append(self.time)
@@ -171,14 +176,26 @@ class vehicleController():
         # Publish the computed control input to vehicle model
         self.controlPub.publish(newAckermannCmd)
 
-    def plot_acceleration(self):
+    def plot_all(self):
         plt.plot(self.times, self.accelerations)
         plt.xlabel('Time (s)')
         plt.ylabel('Acceleration (m/s^2)')
         plt.title('Acceleration Profile')
+        x_init,y_init = self.xs[0], self.ys[0]
+        plt.figure()
+        plt.plot(self.xs, self.ys,'-o',color='blue',label='Vehicle Trajectory')
+        plt.scatter(x_init,y_init,color='red',marker='s',s=100,label='Start Point')
+        plt.scatter(self.xs,self.ys,color='green',marker='s',s=100,label='End Point')
+        plt.title('Vehicle Trajectory around the track')
+        plt.xlabel('X Position (m)')
+        plt.ylabel('Y Position (m)')
+        plt.legend(loc='best')
+        plt.grid(True)
         plt.show()
 
     def stop(self):
+        self.plot_all()
+
         newAckermannCmd = AckermannDrive()
         newAckermannCmd.speed = 0
         self.controlPub.publish(newAckermannCmd)
