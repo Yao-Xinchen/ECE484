@@ -9,3 +9,4 @@ checkpoints/
 */.catkin_workspace
 */*@
 mp2/src/CMakeLists.txt
+mp3/src/CMakeLists.txt
