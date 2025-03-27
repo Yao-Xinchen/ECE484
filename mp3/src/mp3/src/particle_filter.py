@@ -21,7 +21,7 @@ def vehicle_dynamics(t, vars, vr, delta):
     return [dx,dy,dtheta]
 
 class particleFilter:
-    def __init__(self, bob, world, num_particles, sensor_limit, x_start, y_start):
+    def __init__(self, bob: Robot, world: Maze, num_particles, sensor_limit, x_start, y_start):
         self.num_particles = num_particles  # The number of particles for the particle filter
         self.sensor_limit = sensor_limit    # The sensor limit of the sensor
         particles = list()
@@ -30,14 +30,16 @@ class particleFilter:
         # Modify the initial particle distribution to be within the top-right quadrant of the world, and compare the performance with the whole map distribution.
         for i in range(num_particles):
 
-            # (Default) The whole map
-            x = np.random.uniform(0, world.width)
-            y = np.random.uniform(0, world.height)
+            # # (Default) The whole map
+            # x = np.random.uniform(0, world.width)
+            # y = np.random.uniform(0, world.height)
 
 
             ## first quadrant
             # x = 
             # y =
+            x = np.random.uniform(world.width/2, world.width)
+            y = np.random.uniform(world.height/2, world.height)
 
             particles.append(Particle(x = x, y = y, maze = world, sensor_limit = sensor_limit))
 
@@ -95,7 +97,20 @@ class particleFilter:
         """
 
         ## TODO #####
+        weights = []
+        for p in self.particles:
+            measurements_particle = p.senseWalls()  
+            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=5000)
+            weights.append(w)
 
+        total_weight = sum(weights)
+        if total_weight > 0:
+            weights = [w / total_weight for w in weights]
+        else:
+            weights = [1.0 / len(self.particles)] * len(self.particles)
+
+        for i, p in enumerate(self.particles):
+            p.weight = weights[i]
 
         ###############
         # pass
@@ -109,6 +124,21 @@ class particleFilter:
 
         ## TODO #####
         
+        weights = [p.weight for p in self.particles]
+        cumulative_sum = np.cumsum(weights)
+
+        for i in range(self.num_particles):
+            rand_val = random.random()
+            idx = bisect.bisect_left(cumulative_sum, rand_val)
+            chosen_particle = self.particles[idx]
+            new_particle = Particle(
+                x=chosen_particle.x,
+                y=chosen_particle.y,
+                maze=self.world,
+                sensor_limit=self.sensor_limit
+            )
+            new_particle.theta = chosen_particle.theta
+            particles_new.append(new_particle)
 
         ###############
 
@@ -122,6 +152,19 @@ class particleFilter:
         """
         ## TODO #####
         
+        if not self.control:
+            return
+
+        vr, delta = self.control[-1]
+
+        dt = 0.1
+        for p in self.particles:
+            dx = vr * np.cos(p.theta)
+            dy = vr * np.sin(p.theta)
+            dtheta = delta
+            p.x += dx * dt
+            p.y += dy * dt
+            p.theta += dtheta * dt
 
         ###############
         # pass
@@ -135,5 +178,21 @@ class particleFilter:
         count = 0 
         while True:
             ## TODO: (i) Implement Section 3.2.2. (ii) Display robot and particles on map. (iii) Compute and save position/heading error to plot. #####
+
+            # 1
+            self.particleMotionModel()
+            reading = self.bob.read_sensor()
+            self.updateWeight(reading)
+            self.resampleParticle()
+
+            # 2
+            self.world.show_maze()
+            self.world.show_particles(self.particles)
+            self.world.show_robot(self.bob)
+
+            # 3
+            x_error = self.bob.x - self.particles[0].x
+            y_error = self.bob.y - self.particles[0].y
+            theta_error = self.bob.theta - self.particles[0].theta
             
             ###############

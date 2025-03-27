@@ -251,17 +251,60 @@ class Maze(object):
 
         ## TODO: Add 4 additional sensor directions #####
 
+        # Measure distance between wall and vehicle in front-left direction
+        pos_x = x
+        pos_y = y
+        d5 = 0
+        dx = np.cos(orientation - np.pi/4) * 1 - np.sin(orientation - np.pi/4) * 0
+        dy = np.sin(orientation - np.pi/4) * 1 + np.cos(orientation - np.pi/4) * 0
+        while not self.colide_wall(int(round(pos_y)), int(round(pos_x))) and d5 < sensor_limit:
+            pos_x += dx
+            pos_y += dy
+            d5 += 1
+
+        # Measure distance between wall and vehicle in front-right direction
+        pos_x = x
+        pos_y = y
+        d6 = 0
+        dx = np.cos(orientation + np.pi/4) * 1 - np.sin(orientation + np.pi/4) * 0
+        dy = np.sin(orientation + np.pi/4) * 1 + np.cos(orientation + np.pi/4) * 0
+        while not self.colide_wall(int(round(pos_y)), int(round(pos_x))) and d6 < sensor_limit:
+            pos_x += dx
+            pos_y += dy
+            d6 += 1
+
+        # Measure distance between wall and vehicle in rear-left direction
+        pos_x = x
+        pos_y = y
+        d7 = 0
+        dx = np.cos(orientation - 3*np.pi/4) * 1 - np.sin(orientation - 3*np.pi/4) * 0
+        dy = np.sin(orientation - 3*np.pi/4) * 1 + np.cos(orientation - 3*np.pi/4) * 0
+        while not self.colide_wall(int(round(pos_y)), int(round(pos_x))) and d7 < sensor_limit:
+            pos_x += dx
+            pos_y += dy
+            d7 += 1
+
+        # Measure distance between wall and vehicle in rear-right direction
+        pos_x = x
+        pos_y = y
+        d8 = 0
+        dx = np.cos(orientation + 3*np.pi/4) * 1 - np.sin(orientation + 3*np.pi/4) * 0
+        dy = np.sin(orientation + 3*np.pi/4) * 1 + np.cos(orientation + 3*np.pi/4) * 0
+        while not self.colide_wall(int(round(pos_y)), int(round(pos_x))) and d8 < sensor_limit:
+            pos_x += dx
+            pos_y += dy
+            d8 += 1
 
         ###############
 
 
         # Return readings from sensor model in front, right, rear, left direction
         # 4 Directions
-        return [d1*100, d2*100, d3*100, d4*100]
+        # return [d1*100, d2*100, d3*100, d4*100]
 
         # front_left, front_right, rear_left, rear_right
         # 8 Directions
-        # return [d1*100, d2*100, d3*100, d4*100, d5*100, d6*100, d7*100, d8*100]
+        return [d1*100, d2*100, d3*100, d4*100, d5*100, d6*100, d7*100, d8*100]
 
 
 class Particle(object):
