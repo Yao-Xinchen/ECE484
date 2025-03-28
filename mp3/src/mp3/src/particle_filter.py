@@ -102,10 +102,13 @@ class particleFilter:
         for p in self.particles:
             measurements_particle = p.read_sensor() 
             # Assign weights using Gaussian
-            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=50)
+            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=5000)
             weights.append(w)
 
         total_weight = sum(weights)
+        max_weight = max(weights)
+        print(f"Total weight: {total_weight}")
+        print(f"Max weight: {max_weight}")
         if total_weight > 0:
             # Normalize weights to sum to 1
             weights = [w / total_weight for w in weights]
@@ -129,7 +132,10 @@ class particleFilter:
         ## TODO #####
         
         weights = [p.weight for p in self.particles]
-        weights = np.sort(weights)
+        sorted_indices = np.argsort(weights)
+
+        weights = [weights[i] for i in sorted_indices]
+        self.particles = [self.particles[i] for i in sorted_indices]
         cumulative_sum = np.cumsum(weights)
 
         for i in range(self.num_particles):
@@ -137,12 +143,12 @@ class particleFilter:
             idx = bisect.bisect_left(cumulative_sum, rand_val)
             chosen_particle = self.particles[idx]
             new_particle = Particle(
-            x=chosen_particle.x,
-            y=chosen_particle.y,
-            heading=chosen_particle.heading,
-            maze=self.world,
-            sensor_limit=self.sensor_limit,
-            noisy=True
+                x=chosen_particle.x,
+                y=chosen_particle.y,
+                heading=chosen_particle.heading,
+                maze=self.world,
+                sensor_limit=self.sensor_limit,
+                noisy=True
             )
             particles_new.append(new_particle)
 
@@ -160,6 +166,8 @@ class particleFilter:
         
         if not self.control:
             return
+        num_control = len(self.control)
+        print(f"Number of control inputs: {num_control}")
         dt = 0.01
         for (vr, delta) in self.control:
             for p in self.particles:
@@ -171,7 +179,7 @@ class particleFilter:
                 p.heading += dheading * dt
 
         ###############
-        # pass
+        self.control = []
 
 
     def runFilter(self):
@@ -200,7 +208,6 @@ class particleFilter:
             reading = self.bob.read_sensor()
             self.updateWeight(reading)
             self.resampleParticle()
-            print(f"Particle count: {len(self.particles)}")
 
             # 2
             self.world.show_maze()
