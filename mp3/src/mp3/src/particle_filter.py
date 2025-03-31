@@ -16,9 +16,9 @@ def vehicle_dynamics(t, vars, vr, delta):
     curr_y = vars[1] 
     curr_theta = vars[2]
     
-    dx = vr * np.cos(curr_theta)
-    dy = vr * np.sin(curr_theta)
-    dtheta = delta
+    dx = vr * np.cos(curr_theta) * t 
+    dy = vr * np.sin(curr_theta) * t
+    dtheta = delta * t
     return [dx,dy,dtheta]
 
 class particleFilter:
@@ -102,19 +102,12 @@ class particleFilter:
         for p in self.particles:
             measurements_particle = p.read_sensor() 
             # Assign weights using Gaussian
-            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=50)
+            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=500)
             weights.append(w)
 
-        total_weight = sum(weights)
-        max_weight = max(weights)
-        print(f"Total weight: {total_weight}")
-        print(f"Max weight: {max_weight}")
-        if total_weight > 0:
-            # Normalize weights to sum to 1
-            weights = [w / total_weight for w in weights]
-        else:
-            # If all weights are zero, assign uniform weights
-            weights = [1.0 / len(self.particles)] * len(self.particles)
+        total = sum(weights)
+        weights = np.array(weights)
+        weights = weights / total
 
         for i, p in enumerate(self.particles):
             p.weight = weights[i]
@@ -133,21 +126,13 @@ class particleFilter:
         weights = [p.weight for p in self.particles]
         
         cumulative_sum = np.cumsum(weights)
-        
-        if cumulative_sum[-1] == 0:
-            return [Particle(
-                x=np.random.uniform(0, self.world.width),
-                y=np.random.uniform(0, self.world.height),
-                heading=np.random.uniform(0, 2*np.pi),
-                maze=self.world,
-                sensor_limit=self.sensor_limit
-            ) for _ in range(self.num_particles)]
-        
+        cumulative_sum[-1] = 1.0
+
         for i in range(self.num_particles):
             rand_val = random.uniform(0, cumulative_sum[-1])
-            idx = bisect.bisect_left(cumulative_sum, rand_val)
+            idx = np.searchsorted(cumulative_sum, rand_val)
             chosen_particle = self.particles[idx]
-            
+
             new_particle = Particle(
                 x=chosen_particle.x,
                 y=chosen_particle.y,
@@ -169,20 +154,13 @@ class particleFilter:
             You can either use ode function or vehicle_dynamics function provided above
         """
         ## TODO #####
-        
-        if not self.control:
-            return
-        num_control = len(self.control)
-        print(f"Number of control inputs: {num_control}")
-
         dt = 0.01
         for (vr, delta) in self.control:
             for p in self.particles:
-                state = [p.x, p.y, p.heading]
-                dx, dy, dheading = vehicle_dynamics(0, state, vr, delta)
-                p.x += dx * dt
-                p.y += dy * dt
-                p.heading += dheading * dt
+                dx, dy, dheading = vehicle_dynamics(dt, [p.x, p.y, p.heading], vr, delta)
+                p.x += dx
+                p.y += dy
+                p.heading += dheading
 
         ###############
         self.control = []
@@ -216,10 +194,10 @@ class particleFilter:
             self.resampleParticle()
 
             # 2
-            self.world.show_maze()
             self.world.clear_objects()
             self.world.show_particles(self.particles)
             self.world.show_robot(self.bob)
+            self.world.show_estimated_location(self.particles)
 
             # 3
             x_error = self.bob.x - self.particles[0].x
