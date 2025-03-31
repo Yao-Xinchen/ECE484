@@ -80,7 +80,7 @@ class particleFilter:
             rospy.loginfo("Service did not process request: "+str(exc))
         return modelState
 
-    def weight_gaussian_kernel(self,x1, x2, std = 1):
+    def weight_gaussian_kernel(self,x1, x2, std = 5000):
         if x1 is None: # If the robot recieved no sensor measurement, the weights are in uniform distribution.
             return 1./len(self.particles)
         else:
@@ -102,7 +102,7 @@ class particleFilter:
         for p in self.particles:
             measurements_particle = p.read_sensor() 
             # Assign weights using Gaussian
-            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=5000)
+            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=50)
             weights.append(w)
 
         total_weight = sum(weights)
@@ -128,20 +128,26 @@ class particleFilter:
             Perform resample to get a new list of particles 
         """
         particles_new = list()
-
         ## TODO #####
-        
+
         weights = [p.weight for p in self.particles]
-        sorted_indices = np.argsort(weights)
-
-        weights = [weights[i] for i in sorted_indices]
-        self.particles = [self.particles[i] for i in sorted_indices]
+        
         cumulative_sum = np.cumsum(weights)
-
+        
+        if cumulative_sum[-1] == 0:
+            return [Particle(
+                x=np.random.uniform(0, self.world.width),
+                y=np.random.uniform(0, self.world.height),
+                heading=np.random.uniform(0, 2*np.pi),
+                maze=self.world,
+                sensor_limit=self.sensor_limit
+            ) for _ in range(self.num_particles)]
+        
         for i in range(self.num_particles):
             rand_val = random.uniform(0, cumulative_sum[-1])
             idx = bisect.bisect_left(cumulative_sum, rand_val)
             chosen_particle = self.particles[idx]
+            
             new_particle = Particle(
                 x=chosen_particle.x,
                 y=chosen_particle.y,
@@ -168,12 +174,12 @@ class particleFilter:
             return
         num_control = len(self.control)
         print(f"Number of control inputs: {num_control}")
+
         dt = 0.01
         for (vr, delta) in self.control:
             for p in self.particles:
-                dx = vr * np.cos(p.heading)
-                dy = vr * np.sin(p.heading)
-                dheading = delta
+                state = [p.x, p.y, p.heading]
+                dx, dy, dheading = vehicle_dynamics(0, state, vr, delta)
                 p.x += dx * dt
                 p.y += dy * dt
                 p.heading += dheading * dt
