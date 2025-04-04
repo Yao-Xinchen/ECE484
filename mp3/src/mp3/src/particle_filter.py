@@ -47,6 +47,7 @@ class particleFilter:
         ###############
 
         self.particles = particles          # Randomly assign particles at the begining
+        self.variance = self.getParticleVariance()
         self.bob = bob                      # The estimated robot state
         self.world = world                  # The map of the maze
         self.x_start = x_start              # The starting position of the map in the gazebo simulator
@@ -80,13 +81,13 @@ class particleFilter:
             rospy.loginfo("Service did not process request: "+str(exc))
         return modelState
 
-    def weight_gaussian_kernel(self,x1, x2, std = 5000):
+    def weight_gaussian_kernel(self,x1, x2, var = 5000):
         if x1 is None: # If the robot recieved no sensor measurement, the weights are in uniform distribution.
             return 1./len(self.particles)
         else:
             tmp1 = np.array(x1)
             tmp2 = np.array(x2)
-            return np.sum(np.exp(-((tmp2-tmp1) ** 2) / (2 * std)))
+            return np.sum(np.exp(-((tmp2-tmp1) ** 2) / (2 * var)))
 
 
     def updateWeight(self, readings_robot):
@@ -102,7 +103,11 @@ class particleFilter:
         for p in self.particles:
             measurements_particle = p.read_sensor() 
             # Assign weights using Gaussian
-            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, std=500)
+            if self.variance > 150:
+                sensvar = 7000
+            else:
+                sensvar = 2500
+            w = self.weight_gaussian_kernel(readings_robot, measurements_particle, var=sensvar)
             weights.append(w)
 
         total = sum(weights)
@@ -115,6 +120,12 @@ class particleFilter:
         ###############
         # pass
 
+    def getParticleVariance(self):
+        variance_x = np.var([p.x for p in self.particles])
+        variance_y = np.var([p.y for p in self.particles])
+        self.variance = variance_x + variance_y
+        return self.variance
+
     def resampleParticle(self):
         """
         Description:
@@ -124,22 +135,32 @@ class particleFilter:
         ## TODO #####
 
         weights = [p.weight for p in self.particles]
+        self.sorted_particles = sorted(self.particles, key=lambda p: p.weight, reverse=True)
         
         cumulative_sum = np.cumsum(weights)
-        cumulative_sum[-1] = 1.0
-
+        #cumulative_sum[-1] = 1.0
+        self.getParticleVariance()
+        print("Current Variance: ", self.variance)
         for i in range(self.num_particles):
             rand_val = random.uniform(0, cumulative_sum[-1])
             idx = np.searchsorted(cumulative_sum, rand_val)
             chosen_particle = self.particles[idx]
-
+            
+            if self.variance > 150:
+                heading_noise = np.random.normal(0, 2*np.pi*0.1)
+                y_noise = np.random.normal(0, 1)
+                x_noise = np.random.normal(0, 1)
+            else:
+                heading_noise = np.random.normal(0, 0.1)
+                x_noise = np.random.normal(0, 0.25)
+                y_noise = np.random.normal(0, 0.25)
             new_particle = Particle(
-                x=chosen_particle.x,
-                y=chosen_particle.y,
-                heading=chosen_particle.heading,
+                x=chosen_particle.x + x_noise,
+                y=chosen_particle.y + y_noise,
+                heading=chosen_particle.heading + heading_noise,
                 maze=self.world,
                 sensor_limit=self.sensor_limit,
-                noisy=True
+                noisy=False
             )
             particles_new.append(new_particle)
 
@@ -153,18 +174,18 @@ class particleFilter:
             Estimate the next state for each particle according to the control input from actual robot 
             You can either use ode function or vehicle_dynamics function provided above
         """
-        ## TODO #####
-        dt = 0.01
-        for (vr, delta) in self.control:
-            for p in self.particles:
-                dx, dy, dheading = vehicle_dynamics(dt, [p.x, p.y, p.heading], vr, delta)
-                p.x += dx
-                p.y += dy
-                p.heading += dheading
-
-        ###############
+        for p in self.particles:
+            (p.x, p.y, p.heading) = self.predictMotion(p.x, p.y, p.heading)
         self.control = []
 
+    def predictMotion(self, x, y, heading):
+        dt = 0.01
+        for (vr, delta) in self.control:
+                dx, dy, dheading = vehicle_dynamics(dt, [x, y, heading], vr, delta)
+                x += dx
+                y += dy
+                heading += dheading
+        return (x, y, heading)
 
     def runFilter(self):
         """
@@ -200,16 +221,16 @@ class particleFilter:
             self.world.show_estimated_location(self.particles)
 
             # 3
-            x_error = self.bob.x - self.particles[0].x
-            y_error = self.bob.y - self.particles[0].y
-            heading_error = self.bob.heading - self.particles[0].heading
+            x_error = self.bob.x - self.sorted_particles[0].x
+            y_error = self.bob.y - self.sorted_particles[0].y
+            heading_error = self.bob.heading - self.sorted_particles[0].heading
             error_pos.append(np.linalg.norm([x_error, y_error]))
             error_head.append(heading_error)
 
             pos_err_line.set_xdata(timestep)
             pos_err_line.set_ydata(error_pos)
             head_err_line.set_xdata(timestep)
-            head_err_line.set_ydata(error_head)
+            head_err_line.set_ydata(np.unwrap(error_head))
 
             ax1.relim()
             ax2.relim()
