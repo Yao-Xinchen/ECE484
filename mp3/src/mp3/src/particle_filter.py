@@ -8,8 +8,11 @@ from gazebo_msgs.srv import GetModelState
 import shutil
 from std_msgs.msg import Float32MultiArray
 from scipy.integrate import ode
+import time
 
 import random
+import os
+import queue
 
 def vehicle_dynamics(t, vars, vr, delta):
     curr_x = vars[0]
@@ -32,15 +35,15 @@ class particleFilter:
         for i in range(num_particles):
 
             # # (Default) The whole map
-            # x = np.random.uniform(0, world.width)
-            # y = np.random.uniform(0, world.height)
+            x = np.random.uniform(0, world.width)
+            y = np.random.uniform(0, world.height)
 
 
             ## first quadrant
             # x = 
             # y =
-            x = np.random.uniform(world.width/2, world.width)
-            y = np.random.uniform(world.height/2, world.height)
+            # x = np.random.uniform(world.width/2, world.width)
+            # y = np.random.uniform(world.height/2, world.height)
 
             particles.append(Particle(x = x, y = y, maze = world, sensor_limit = sensor_limit))
 
@@ -104,9 +107,9 @@ class particleFilter:
             measurements_particle = p.read_sensor() 
             # Assign weights using Gaussian
             if self.variance > 150:
-                sensvar = 7000
+                sensvar = 5000
             else:
-                sensvar = 2500
+                sensvar = 900
             w = self.weight_gaussian_kernel(readings_robot, measurements_particle, var=sensvar)
             weights.append(w)
 
@@ -138,7 +141,7 @@ class particleFilter:
         self.sorted_particles = sorted(self.particles, key=lambda p: p.weight, reverse=True)
         
         cumulative_sum = np.cumsum(weights)
-        #cumulative_sum[-1] = 1.0
+
         self.getParticleVariance()
         print("Current Variance: ", self.variance)
         for i in range(self.num_particles):
@@ -147,13 +150,13 @@ class particleFilter:
             chosen_particle = self.particles[idx]
             
             if self.variance > 150:
-                heading_noise = np.random.normal(0, 2*np.pi*0.1)
-                y_noise = np.random.normal(0, 1)
-                x_noise = np.random.normal(0, 1)
+                heading_noise = np.random.normal(0, 2*np.pi*0.06)
+                y_noise = np.random.normal(0, 0.25)
+                x_noise = np.random.normal(0, 0.25)
             else:
                 heading_noise = np.random.normal(0, 0.1)
-                x_noise = np.random.normal(0, 0.25)
-                y_noise = np.random.normal(0, 0.25)
+                x_noise = np.random.normal(0, 0.2)
+                y_noise = np.random.normal(0, 0.2)
             new_particle = Particle(
                 x=chosen_particle.x + x_noise,
                 y=chosen_particle.y + y_noise,
@@ -192,19 +195,34 @@ class particleFilter:
         Description:
             Run PF localization
         """
-        count = 0 
+        count = 0
         timestep = []
         error_pos = []
         error_head = []
-        fig, ax = plt.subplots(2,1)
+        frequency_data = []
+        frequency_timesteps = []
+        loop_times = []
+        start_time = time.time()
+        
+        fig, ax = plt.subplots(3, 1, figsize=(8, 10))
         ax1 = ax[0]
         ax2 = ax[1]
+        ax3 = ax[2]
+        
         pos_err_line, = ax1.plot([], [], 'b',)
         head_err_line, = ax2.plot([], [], 'r')
+        freq_line, = ax3.plot([], [], 'g')
+        
         ax1.set_title("Position Error")
         ax2.set_title("Heading Error")
+        ax3.set_title("Loop Frequency (Hz)")
+        
         fig.show()
+
+        time_queue = queue.Queue()
+
         while True:
+            loop_start_time = time.time()
             ## TODO: (i) Implement Section 3.2.2. (ii) Display robot and particles on map. (iii) Compute and save position/heading error to plot. #####
             count = count + 1
             timestep.append(count)
@@ -232,6 +250,21 @@ class particleFilter:
             head_err_line.set_xdata(timestep)
             head_err_line.set_ydata(np.unwrap(error_head))
 
+            loop_end_time = time.time()
+            iteration_time = loop_end_time - loop_start_time
+            loop_times.append(iteration_time)
+            
+            if len(loop_times) >= 10:
+                avg_time = sum(loop_times[-10:]) / 10
+                freq = 1.0 / avg_time if avg_time > 0 else 0
+                frequency_data.append(freq)
+                frequency_timesteps.append(count)
+                
+                freq_line.set_xdata(frequency_timesteps)
+                freq_line.set_ydata(frequency_data)
+                ax3.relim()
+                ax3.autoscale_view()
+            
             ax1.relim()
             ax2.relim()
             ax1.autoscale_view()
